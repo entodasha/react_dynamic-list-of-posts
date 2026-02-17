@@ -3,12 +3,12 @@ import { Comment } from '../types/Comment';
 
 type Props = {
   comment: Comment;
-  onClick: (commentId: number) => void;
+  onClick: (comment: Comment) => void;
 };
 
 export const CommentDetails: React.FC<Props> = ({ comment, onClick }) => {
   return (
-    <article className="message is-small" data-cy="Comment" key={comment.id}>
+    <article className="message is-small" data-cy="Comment">
       <div className="message-header">
         <a href={`mailto:${comment.email}`} data-cy="CommentAuthor">
           {comment.name}
@@ -19,7 +19,7 @@ export const CommentDetails: React.FC<Props> = ({ comment, onClick }) => {
           className="delete is-small"
           aria-label="delete"
           onClick={() => {
-            onClick(comment.id);
+            onClick(comment);
           }}
         >
           delete button

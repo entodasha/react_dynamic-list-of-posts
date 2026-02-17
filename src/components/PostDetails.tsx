@@ -5,7 +5,6 @@ import { Post } from '../types/Post';
 import { deleteComment, getPostComments } from '../api/api';
 import { Comment } from '../types/Comment';
 import { CommentDetails } from './CommentDetails';
-import cn from 'classnames';
 
 type Props = {
   post: Post;
@@ -19,7 +18,6 @@ export const PostDetails: React.FC<Props> = ({
   post,
   isFormOpen,
   isButtonVisible,
-  setIsFormOpen,
   onClick,
 }) => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -45,77 +43,74 @@ export const PostDetails: React.FC<Props> = ({
       });
   }, [post]);
 
-  const handleDeleteComment = (commentId: number) => {
-    deleteComment(commentId).then(() => {
-      setComments(prevComments =>
-        prevComments.filter(comment => comment.id !== commentId),
-      );
+  const handleDeleteComment = (comment: Comment) => {
+    setComments(prevComments =>
+      prevComments.filter(currComment => comment.id !== currComment.id),
+    );
+
+    deleteComment(comment.id).catch(() => {
+      setComments(prevComments => [...prevComments, comment]);
     });
   };
 
   return (
     <div className="content" data-cy="PostDetails">
-      <div className="content" data-cy="PostDetails">
-        <div className="block">
-          <h2 data-cy="PostTitle">{`#${post?.id}: ${post?.title}`}</h2>
+      <div className="block">
+        <h2 data-cy="PostTitle">{`#${post?.id}: ${post?.title}`}</h2>
 
-          <p data-cy="PostBody">{post?.body}</p>
-        </div>
+        <p data-cy="PostBody">{post?.body}</p>
+      </div>
 
-        <div className="block">
-          {postLoading && <Loader />}
+      <div className="block">
+        {postLoading && <Loader />}
 
-          {!postLoading && error && (
-            <div className="notification is-danger" data-cy="CommentsError">
-              Something went wrong
-            </div>
-          )}
+        {!postLoading && error && (
+          <div className="notification is-danger" data-cy="CommentsError">
+            Something went wrong
+          </div>
+        )}
 
-          {!postLoading && !error && (
-            <>
-              {comments.length === 0 && (
-                <p className="title is-4" data-cy="NoCommentsMessage">
-                  No comments yet
-                </p>
-              )}
-              {comments.length > 0 && (
-                <>
-                  <p className="title is-4">Comments:</p>
+        {!postLoading && !error && (
+          <>
+            {comments.length === 0 && (
+              <p className="title is-4" data-cy="NoCommentsMessage">
+                No comments yet
+              </p>
+            )}
+            {comments.length > 0 && (
+              <>
+                <p className="title is-4">Comments:</p>
 
-                  {comments.map(comment => (
-                    <CommentDetails
-                      key={comment.id}
-                      comment={comment}
-                      onClick={handleDeleteComment}
-                    />
-                  ))}
-                </>
-              )}
-              {isButtonVisible && (
-                <button
-                  data-cy="WriteCommentButton"
-                  type="button"
-                  className={cn('button is-link', {
-                    'is-hidden': !isButtonVisible,
-                  })}
-                  onClick={onClick}
-                >
-                  Write a comment
-                </button>
-              )}
-            </>
-          )}
-        </div>
-
-        {isFormOpen && (
-          <NewCommentForm
-            postId={post.id}
-            setComments={setComments}
-            setIsError={setError}
-            setIsOpen={setIsFormOpen}
-          />
+                {comments.map(comment => (
+                  <CommentDetails
+                    key={comment.id}
+                    comment={comment}
+                    onClick={handleDeleteComment}
+                  />
+                ))}
+              </>
+            )}
+            {isButtonVisible && (
+              <button
+                data-cy="WriteCommentButton"
+                type="button"
+                className="button is-link"
+                onClick={onClick}
+              >
+                Write a comment
+              </button>
+            )}
+          </>
         )}
       </div>
+
+      {isFormOpen && (
+        <NewCommentForm
+          postId={post.id}
+          setComments={setComments}
+          setIsError={setError}
+        />
+      )}
     </div>
   );
 };

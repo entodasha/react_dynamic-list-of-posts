@@ -7,14 +7,12 @@ type Props = {
   postId: number;
   setIsError: (value: boolean) => void;
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
-  setIsOpen: (value: boolean) => void;
 };
 
 export const NewCommentForm: React.FC<Props> = ({
   postId,
   setComments,
   setIsError,
-  setIsOpen,
 }) => {
   const [nameQuery, setNameQuery] = useState('');
   const [emailQuery, setEmailQuery] = useState('');
@@ -24,7 +22,6 @@ export const NewCommentForm: React.FC<Props> = ({
   const [emailInvalid, setEmailInvalid] = useState(false);
   const [commentInvalid, setCommentInvalid] = useState(false);
 
-  // #region onChange
   const onNameChange = (value: string) => {
     setNameQuery(value);
     setNameInvalid(false);
@@ -39,8 +36,6 @@ export const NewCommentForm: React.FC<Props> = ({
     setCommentQuery(value);
     setCommentInvalid(false);
   };
-
-  //#endregion
 
   const handleClear = () => {
     setNameQuery('');
@@ -69,7 +64,7 @@ export const NewCommentForm: React.FC<Props> = ({
       setCommentInvalid(true);
     }
 
-    if (!name && !email && !comment) {
+    if (!name || !email || !comment) {
       return;
     }
 
@@ -89,7 +84,7 @@ export const NewCommentForm: React.FC<Props> = ({
       })
       .catch(() => {
         setIsError(true);
-        setIsOpen(false);
+        setCommentQuery(newComment.body);
       })
       .finally(() => {
         setIsLoading(false);
