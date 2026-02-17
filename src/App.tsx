@@ -16,14 +16,17 @@ import { Post } from './types/Post';
 export const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [isActive, setIsActive] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isFormButtonVisible, setIsFormButtonVisible] = useState(true);
+
+  const [sideBarStates, setSideBarStates] = useState({
+    isSideBarOpen: false,
+    isFormOpen: false,
+    isFormButtonVisible: true,
+  });
 
   useEffect(() => {
     getUsers().then(setUsers);
@@ -35,9 +38,13 @@ export const App: React.FC = () => {
 
   const handleUserSelect = (user: User) => {
     setSelectedUser(user);
-    setIsActive(false);
-    setIsOpen(false);
     setSelectedPost(null);
+    setIsActive(false);
+
+    setSideBarStates(prev => ({
+      ...prev,
+      isSideBarOpen: false,
+    }));
 
     setIsLoading(true);
 
@@ -56,22 +63,31 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleClick = (post: Post) => {
-    setIsOpen(true);
+  const handleOpenPost = (post: Post) => {
     setSelectedPost(post);
-    setIsFormOpen(false);
-    setIsFormButtonVisible(true);
+
+    setSideBarStates({
+      isSideBarOpen: true,
+      isFormOpen: false,
+      isFormButtonVisible: true,
+    });
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
+  const handleClosePost = () => {
+    setSideBarStates(prev => ({
+      ...prev,
+      isSideBarOpen: false,
+    }));
 
     setSelectedPost(null);
   };
 
   const handleOpenForm = () => {
-    setIsFormOpen(true);
-    setIsFormButtonVisible(false);
+    setSideBarStates(prev => ({
+      ...prev,
+      isFormOpen: true,
+      isFormButtonVisible: false,
+    }));
   };
 
   return (
@@ -83,11 +99,11 @@ export const App: React.FC = () => {
               <div className="block">
                 <UserSelector
                   users={users}
-                  isOpen={isActive}
+                  isSelectActive={isActive}
                   selectedUser={selectedUser}
-                  onClick={handleSelectOpen}
+                  handleOpen={handleSelectOpen}
                   onSelect={handleUserSelect}
-                  setIsOpen={setIsActive}
+                  setSelectActive={setIsActive}
                 />
               </div>
 
@@ -122,8 +138,8 @@ export const App: React.FC = () => {
                       <PostsList
                         posts={posts}
                         selectedPost={selectedPost}
-                        onClick={handleClick}
-                        onClose={handleClose}
+                        handleOpen={handleOpenPost}
+                        handleClose={handleClosePost}
                       />
                     )}
                   </>
@@ -139,17 +155,16 @@ export const App: React.FC = () => {
               'is-parent',
               'is-8-desktop',
               'Sidebar',
-              { 'Sidebar--open': isOpen },
+              { 'Sidebar--open': sideBarStates.isSideBarOpen },
             )}
           >
             {selectedPost && (
               <div className="tile is-child box is-success ">
                 <PostDetails
                   post={selectedPost}
-                  isFormOpen={isFormOpen}
-                  isButtonVisible={isFormButtonVisible}
-                  setIsFormOpen={setIsFormOpen}
-                  onClick={handleOpenForm}
+                  isFormOpen={sideBarStates.isFormOpen}
+                  isButtonVisible={sideBarStates.isFormButtonVisible}
+                  handleFormOpen={handleOpenForm}
                 />
               </div>
             )}

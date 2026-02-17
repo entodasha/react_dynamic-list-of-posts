@@ -10,15 +10,14 @@ type Props = {
   post: Post;
   isFormOpen: boolean;
   isButtonVisible: boolean;
-  setIsFormOpen: (value: boolean) => void;
-  onClick: () => void;
+  handleFormOpen: () => void;
 };
 
 export const PostDetails: React.FC<Props> = ({
   post,
   isFormOpen,
   isButtonVisible,
-  onClick,
+  handleFormOpen,
 }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [error, setError] = useState(false);
@@ -34,6 +33,7 @@ export const PostDetails: React.FC<Props> = ({
     getPostComments(post.id)
       .then((data: Comment[]) => {
         setComments(data);
+        setError(false);
       })
       .catch(() => {
         setError(true);
@@ -43,14 +43,17 @@ export const PostDetails: React.FC<Props> = ({
       });
   }, [post]);
 
-  const handleDeleteComment = (comment: Comment) => {
+  const handleDeleteComment = async (comment: Comment) => {
     setComments(prevComments =>
       prevComments.filter(currComment => comment.id !== currComment.id),
     );
 
-    deleteComment(comment.id).catch(() => {
+    try {
+      await deleteComment(comment.id);
+    } catch (err) {
       setComments(prevComments => [...prevComments, comment]);
-    });
+      throw err;
+    }
   };
 
   return (
@@ -85,7 +88,7 @@ export const PostDetails: React.FC<Props> = ({
                   <CommentDetails
                     key={comment.id}
                     comment={comment}
-                    onClick={handleDeleteComment}
+                    handleDelete={handleDeleteComment}
                   />
                 ))}
               </>
@@ -95,7 +98,7 @@ export const PostDetails: React.FC<Props> = ({
                 data-cy="WriteCommentButton"
                 type="button"
                 className="button is-link"
-                onClick={onClick}
+                onClick={handleFormOpen}
               >
                 Write a comment
               </button>

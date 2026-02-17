@@ -4,20 +4,20 @@ import cn from 'classnames';
 
 type Props = {
   users: User[];
-  isOpen: boolean;
+  isSelectActive: boolean;
   selectedUser: User | null;
-  onClick: () => void;
+  handleOpen: () => void;
   onSelect: (user: User) => void;
-  setIsOpen: (value: boolean) => void;
+  setSelectActive: (value: boolean) => void;
 };
 
 export const UserSelector: React.FC<Props> = ({
   users,
-  isOpen,
+  isSelectActive,
   selectedUser,
-  onClick,
+  handleOpen,
   onSelect,
-  setIsOpen,
+  setSelectActive,
 }) => {
   const dropDownRef = useRef<HTMLDivElement>(null);
 
@@ -27,23 +27,23 @@ export const UserSelector: React.FC<Props> = ({
         dropDownRef.current &&
         !dropDownRef.current.contains(e.target as Node)
       ) {
-        setIsOpen(false);
+        setSelectActive(false);
       }
     };
 
-    if (isOpen) {
+    if (isSelectActive) {
       document.addEventListener('click', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [isOpen, setIsOpen]);
+  }, [isSelectActive, setSelectActive]);
 
   return (
     <div
       data-cy="UserSelector"
-      className={cn('dropdown', { 'is-active': isOpen })}
+      className={cn('dropdown', { 'is-active': isSelectActive })}
       ref={dropDownRef}
     >
       <div className="dropdown-trigger">
@@ -52,7 +52,7 @@ export const UserSelector: React.FC<Props> = ({
           className="button"
           aria-haspopup="true"
           aria-controls="dropdown-menu"
-          onClick={onClick}
+          onClick={handleOpen}
         >
           <span>{selectedUser ? selectedUser.name : 'Choose a user'}</span>
 

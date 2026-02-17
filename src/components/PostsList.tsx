@@ -4,15 +4,15 @@ import { Post } from '../types/Post';
 type Props = {
   posts: Post[];
   selectedPost: Post | null;
-  onClick: (post: Post) => void;
-  onClose: () => void;
+  handleOpen: (post: Post) => void;
+  handleClose: () => void;
 };
 
 export const PostsList: React.FC<Props> = ({
   posts,
   selectedPost,
-  onClick,
-  onClose,
+  handleOpen,
+  handleClose,
 }) => {
   return (
     <div data-cy="PostsList">
@@ -41,7 +41,7 @@ export const PostsList: React.FC<Props> = ({
                     type="button"
                     data-cy="PostButton"
                     className="button is-link"
-                    onClick={onClose}
+                    onClick={handleClose}
                   >
                     Close
                   </button>
@@ -52,7 +52,7 @@ export const PostsList: React.FC<Props> = ({
                     type="button"
                     data-cy="PostButton"
                     className="button is-link is-light"
-                    onClick={() => onClick(post)}
+                    onClick={() => handleOpen(post)}
                   >
                     Open
                   </button>

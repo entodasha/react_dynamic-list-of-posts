@@ -14,81 +14,89 @@ export const NewCommentForm: React.FC<Props> = ({
   setComments,
   setIsError,
 }) => {
-  const [nameQuery, setNameQuery] = useState('');
-  const [emailQuery, setEmailQuery] = useState('');
-  const [commentQuery, setCommentQuery] = useState('');
+  const [formState, setFormState] = useState({
+    nameQuery: '',
+    nameInvalid: false,
+    emailQuery: '',
+    emailInvalid: false,
+    commentQuery: '',
+    commentInvalid: false,
+  });
   const [isLoading, setIsLoading] = useState(false);
-  const [nameInvalid, setNameInvalid] = useState(false);
-  const [emailInvalid, setEmailInvalid] = useState(false);
-  const [commentInvalid, setCommentInvalid] = useState(false);
 
   const onNameChange = (value: string) => {
-    setNameQuery(value);
-    setNameInvalid(false);
+    setFormState(prevState => ({
+      ...prevState,
+      nameQuery: value,
+      nameInvalid: false,
+    }));
   };
 
   const onEmailChange = (value: string) => {
-    setEmailQuery(value);
-    setEmailInvalid(false);
+    setFormState(prevState => ({
+      ...prevState,
+      emailQuery: value,
+      emailInvalid: false,
+    }));
   };
 
   const onCommentChange = (value: string) => {
-    setCommentQuery(value);
-    setCommentInvalid(false);
+    setFormState(prevState => ({
+      ...prevState,
+      commentQuery: value,
+      commentInvalid: false,
+    }));
   };
 
   const handleClear = () => {
-    setNameQuery('');
-    setNameInvalid(false);
-    setEmailQuery('');
-    setEmailInvalid(false);
-    setCommentQuery('');
-    setCommentInvalid(false);
+    setFormState({
+      nameQuery: '',
+      nameInvalid: false,
+      emailQuery: '',
+      emailInvalid: false,
+      commentQuery: '',
+      commentInvalid: false,
+    });
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const name = nameQuery.trim();
-    const email = emailQuery.trim();
-    const comment = commentQuery.trim();
 
-    if (name === '') {
-      setNameInvalid(true);
-    }
+    const name = formState.nameQuery.trim();
+    const email = formState.emailQuery.trim();
+    const body = formState.commentQuery.trim();
 
-    if (email === '') {
-      setEmailInvalid(true);
-    }
+    setFormState(prev => ({
+      ...prev,
+      nameInvalid: name === '',
+      emailInvalid: email === '',
+      commentInvalid: body === '',
+    }));
 
-    if (comment === '') {
-      setCommentInvalid(true);
-    }
-
-    if (!name || !email || !comment) {
+    if (!name || !email || !body) {
       return;
     }
 
     setIsLoading(true);
 
-    const newComment = {
-      postId: postId,
-      name: name,
-      email: email,
-      body: comment,
-    };
+    try {
+      const newComment = await createComment({ postId, name, email, body });
 
-    createComment({ ...newComment })
-      .then(data => {
-        setComments(prevComments => [...prevComments, data]);
-        setCommentQuery('');
-      })
-      .catch(() => {
-        setIsError(true);
-        setCommentQuery(newComment.body);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      setComments(currComments => [...currComments, newComment]);
+      setFormState(prev => ({
+        ...prev,
+        commentQuery: '',
+      }));
+    } catch (err) {
+      setIsError(true);
+      setFormState(prev => ({
+        ...prev,
+        commentQuery: formState.commentQuery,
+      }));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -104,8 +112,8 @@ export const NewCommentForm: React.FC<Props> = ({
             name="name"
             id="comment-author-name"
             placeholder="Name Surname"
-            className={cn('input', { 'is-danger': nameInvalid })}
-            value={nameQuery}
+            className={cn('input', { 'is-danger': formState.nameInvalid })}
+            value={formState.nameQuery}
             onChange={e => onNameChange(e.target.value)}
           />
 
@@ -113,7 +121,7 @@ export const NewCommentForm: React.FC<Props> = ({
             <i className="fas fa-user" />
           </span>
 
-          {nameInvalid && (
+          {formState.nameInvalid && (
             <span
               className="icon is-small is-right has-text-danger"
               data-cy="ErrorIcon"
@@ -123,7 +131,7 @@ export const NewCommentForm: React.FC<Props> = ({
           )}
         </div>
 
-        {nameInvalid && (
+        {formState.nameInvalid && (
           <p className="help is-danger" data-cy="ErrorMessage">
             Name is required
           </p>
@@ -141,8 +149,8 @@ export const NewCommentForm: React.FC<Props> = ({
             name="email"
             id="comment-author-email"
             placeholder="email@test.com"
-            className={cn('input', { 'is-danger': emailInvalid })}
-            value={emailQuery}
+            className={cn('input', { 'is-danger': formState.emailInvalid })}
+            value={formState.emailQuery}
             onChange={e => onEmailChange(e.target.value)}
           />
 
@@ -150,7 +158,7 @@ export const NewCommentForm: React.FC<Props> = ({
             <i className="fas fa-envelope" />
           </span>
 
-          {emailInvalid && (
+          {formState.emailInvalid && (
             <span
               className="icon is-small is-right has-text-danger"
               data-cy="ErrorIcon"
@@ -160,7 +168,7 @@ export const NewCommentForm: React.FC<Props> = ({
           )}
         </div>
 
-        {emailInvalid && (
+        {formState.emailInvalid && (
           <p className="help is-danger" data-cy="ErrorMessage">
             Email is required
           </p>
@@ -177,13 +185,15 @@ export const NewCommentForm: React.FC<Props> = ({
             id="comment-body"
             name="body"
             placeholder="Type comment here"
-            className={cn('textarea', { ' is-danger': commentInvalid })}
-            value={commentQuery}
+            className={cn('textarea', {
+              'is-danger': formState.commentInvalid,
+            })}
+            value={formState.commentQuery}
             onChange={e => onCommentChange(e.target.value)}
           />
         </div>
 
-        {commentInvalid && (
+        {formState.commentInvalid && (
           <p className="help is-danger" data-cy="ErrorMessage">
             Enter some text
           </p>
